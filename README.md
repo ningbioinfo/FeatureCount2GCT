@@ -53,4 +53,11 @@ total 4164520
 python FC_2_GCT.py -datadir featureCount/ 
 ```
 
+or
+
+the featurecount output file contains all the samples.
+
 **the /data/ folder is expected to have featureCounts outputs end with ".counts.txt"**
+
+### To do
+Give meaningful info to the Description column.
