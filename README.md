@@ -8,13 +8,49 @@ This is a script to convert the output from FeatureCount to GCT format expressio
 
 ### Dependencies:
 
-1. Python3
+1. Python3+
 2. numpy
 
-### How to run
+### Manual
 
 ```
-python3 FC_2_GCT.py /path/to/your/data/
+ $ python FC_2_GCT.py -h
+usage: FC_2_GCT.py [-h] [-datadir [DATADIR]] [-out OUT]
+
+Script to transform the output from featurecount to .gct format for eQTL
+mapping
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -datadir [DATADIR]  path to the directory that contains the all the output
+                      files from featurecount (.counts.txt)
+  -out OUT            The output file prefix, by default it is "out", i.e.
+                      output will be out.gct and out.normalised.gct
+
+Your ideas are intriguing to me, and I wish to subscribe to your newsletter.
+```
+
+### Example
+```
+ $ ll featureCount/ 
+total 4164520
+-rw-r--r--  1 ningliu  staff    34M 17 Jan 11:44 ERR009096.counts.txt
+-rw-r--r--  1 ningliu  staff   331B 17 Jan 11:45 ERR009096.counts.txt.summary
+-rw-r--r--  1 ningliu  staff    34M 17 Jan 11:52 ERR009097.counts.txt
+-rw-r--r--  1 ningliu  staff   331B 17 Jan 11:40 ERR009097.counts.txt.summary
+-rw-r--r--  1 ningliu  staff    34M 17 Jan 11:44 ERR009099.counts.txt
+-rw-r--r--  1 ningliu  staff   333B 17 Jan 11:55 ERR009099.counts.txt.summary
+-rw-r--r--  1 ningliu  staff    34M 17 Jan 11:38 ERR009102.counts.txt
+-rw-r--r--  1 ningliu  staff   334B 17 Jan 11:54 ERR009102.counts.txt.summary
+-rw-r--r--  1 ningliu  staff    34M 17 Jan 11:42 ERR009103.counts.txt
+-rw-r--r--  1 ningliu  staff   332B 17 Jan 11:48 ERR009103.counts.txt.summary
+-rw-r--r--  1 ningliu  staff    34M 17 Jan 11:55 ERR009104.counts.txt
+-rw-r--r--  1 ningliu  staff   334B 17 Jan 11:47 ERR009104.counts.txt.summary
+-rw-r--r--  1 ningliu  staff    34M 17 Jan 11:53 ERR009105.counts.txt
+....
+```
+```
+python FC_2_GCT.py -datadir featureCount/ 
 ```
 
 **the /data/ folder is expected to have featureCounts outputs end with ".counts.txt"**
