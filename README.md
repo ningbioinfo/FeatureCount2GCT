@@ -21,15 +21,13 @@ Script to transform the output from featurecount to .gct format for eQTL
 mapping
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -datadir [DATADIR]    path to the directory that contains the all the output
-                        files from featurecount (.counts.txt)
-  -out OUT              The output file prefix, by default it is "out", i.e.
-                        output will be out.gct and out.normalised.gct
-  -mergedata MERGEDATA  The input dir has one count output from featureCount
-                        contains all the samples instead of having one txt
-                        file for each sample, specify this option to 0 to turn
-                        it off
+  -h, --help            Show this help message and exit
+  --datadir [DATADIR]   Script to transform a featureCounts output (cut -f1,7- removed) 
+			to .gct format for eQTL mapping
+  --out OUT             Output file prefix, by default it is "out", 
+			i.e. Output will be out.gct and out.normalised.gct
+  --mergedata MERGEDATA The input dir has one count input from featureCounts 
+			containing all the samples. Set to 0 to turn it off
 
 Your ideas are intriguing to me, and I wish to subscribe to your newsletter.
 ```
@@ -54,7 +52,7 @@ total 4164520
 ....
 ```
 ```
-python FC_2_GCT.py -datadir featureCount/ -mergedata 0
+python FC_2_GCT.py --datadir featureCount/ --mergedata 0
 ```
 
 or
@@ -66,9 +64,25 @@ total 29736
 -rw-r--r--@ 1 ningliu  staff    15M  5 Apr 20:42 merge_all.counts.txt
 ```
 ```
-python FC_2_GCT.py -datadir Mergedata/ -mergedata 1 
+python FC_2_GCT.py --datadir Mergedata/ --mergedata 1 
 ```
 **the /data/ folder is expected to have featureCounts outputs end with ".counts.txt"**
 
 ### To do
-Give meaningful info to the Description column.
+
+- [ ] Give meaningful info to the Description column.
+
+- [ ] Invoke help message when no parameter or file is set. e.g. 
+
+```
+python ~/projects/Development/FeatureCount2GCT/FC_2_GCT.py
+START!
+Traceback (most recent call last):
+  File "/Users/jbreen/projects/Development/FeatureCount2GCT/FC_2_GCT.py", line 107, in <module>
+    with open(datafiles[0],"r") as fcfile:
+IndexError: list index out of range
+```
+
+- [ ] Option for multiple normalisation strategies (TMM, TPM, RPKM etc)
+
+
