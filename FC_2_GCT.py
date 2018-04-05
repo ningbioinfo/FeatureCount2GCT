@@ -137,7 +137,7 @@ for file in datafiles:
 print(len(ReadCountlist[0]))
 print(len(Gene_id))
 print(len(Description))
-print('The three numbers that just printed out should be the same!')
+#print('The three numbers that just printed out should be the same!')
 
 
 out1 = args['out'] + '.gct'
@@ -149,8 +149,8 @@ with open(out1, 'a', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     for i in range(len(Gene_id)):
         data=[Gene_id[i], Description[i]]
-        for j in ReadCountlist:
-            data.append(str(j[i]))
+        for j in ReadCountlist[i]:
+            data.append(j)
         writer.writerow(data)
 
 # headers
