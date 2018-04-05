@@ -137,7 +137,7 @@ for file in datafiles:
 print(len(ReadCountlist[0]))
 print(len(Gene_id))
 print(len(Description))
-print('The three numbers that just printed out should be the same.')
+print('The three numbers that just printed out should be the same!')
 
 
 out1 = args['out'] + '.gct'
