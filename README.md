@@ -15,17 +15,21 @@ This is a script to convert the output from FeatureCount to GCT format expressio
 
 ```
  $ python FC_2_GCT.py -h
-usage: FC_2_GCT.py [-h] [-datadir [DATADIR]] [-out OUT]
+usage: FC_2_GCT.py [-h] [-datadir [DATADIR]] [-out OUT] [-mergedata MERGEDATA]
 
 Script to transform the output from featurecount to .gct format for eQTL
 mapping
 
 optional arguments:
-  -h, --help          show this help message and exit
-  -datadir [DATADIR]  path to the directory that contains the all the output
-                      files from featurecount (.counts.txt)
-  -out OUT            The output file prefix, by default it is "out", i.e.
-                      output will be out.gct and out.normalised.gct
+  -h, --help            show this help message and exit
+  -datadir [DATADIR]    path to the directory that contains the all the output
+                        files from featurecount (.counts.txt)
+  -out OUT              The output file prefix, by default it is "out", i.e.
+                        output will be out.gct and out.normalised.gct
+  -mergedata MERGEDATA  The input dir has one count output from featureCount
+                        contains all the samples instead of having one txt
+                        file for each sample, specify this option to 0 to turn
+                        it off
 
 Your ideas are intriguing to me, and I wish to subscribe to your newsletter.
 ```
@@ -50,13 +54,20 @@ total 4164520
 ....
 ```
 ```
-python FC_2_GCT.py -datadir featureCount/ 
+python FC_2_GCT.py -datadir featureCount/ -mergedata 0
 ```
 
 or
 
-the featurecount output file contains all the samples.
 
+```
+$ ll Mergedata 
+total 29736
+-rw-r--r--@ 1 ningliu  staff    15M  5 Apr 20:42 merge_all.counts.txt
+```
+```
+python FC_2_GCT.py -datadir Mergedata/ -mergedata 1 
+```
 **the /data/ folder is expected to have featureCounts outputs end with ".counts.txt"**
 
 ### To do
