@@ -12,6 +12,7 @@ from os import listdir
 from os.path import isfile, join
 import os
 import numpy as np
+import math
 import csv
 
 
@@ -21,6 +22,7 @@ ReadCount = []
 ReadCountlist = []
 Norm_ReadCount = []
 Norm_ReadCountlist =[]
+gene_sum = []
 
 
 
@@ -57,18 +59,30 @@ def Get_readcount(fc_file):
 def Get_Normreadcount(rc_list):
         global Norm_ReadCount
         global Norm_ReadCountlist
-        for i in range(len(rc_list)):
-            s = sum(rc_list[i])
-            if s != 0:
-                for j in rc_list[i]:
-                    norm_rc = np.round((j/float(s))*1000000, decimals=3)
+        global gene_sum
+
+        RCarray = np.array(rc_list)
+        for i in range(len(RCarray[0])):
+            gene_sum.append(sum(RCarray[:,i]))
+
+        if len(datafiles) ==1:
+
+            for j in range(len(RCarray)):
+                for s in range(len(gene_sum)):
+                    norm_rc = np.round(math.log2((RCarray[j][s]+1/float(gene_sum[s])+0.5)*1000000), decimals=3)
                     Norm_ReadCount.append(norm_rc)
-            elif s == 0:
+
+                Norm_ReadCountlist.append(Norm_ReadCount)
+                Norm_ReadCount=[]
+
+        if len(datafiles) >1:
+            for i in range(len(rc_list)):
+                s = sum(rc_list[i])
                 for j in rc_list[i]:
-                    norm_rc = 0.0
+                    norm_rc = np.round(math.log2((j+1/float(s)+0.5)*1000000), decimals=3)
                     Norm_ReadCount.append(norm_rc)
-            Norm_ReadCountlist.append(Norm_ReadCount)
-            Norm_ReadCount=[]
+                Norm_ReadCountlist.append(Norm_ReadCount)
+                Norm_ReadCount=[]
         return Norm_ReadCount
         return Norm_ReadCountlist
 
@@ -194,11 +208,18 @@ Get_Normreadcount(ReadCountlist)
 print("Writing into normalised gct file.")
 with open(out2, 'a', newline='') as norm_csvfile:
     writer = csv.writer(norm_csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    for i in range(len(Gene_id)):
-        data=[Gene_id[i], Description[i]]
-        for j in Norm_ReadCountlist:
-            data.append(str(j[i]))
-        writer.writerow(data)
+    if len(datafiles)>1:
+        for i in range(len(Gene_id)):
+            data=[Gene_id[i], Description[i]]
+            for j in range(len(Norm_ReadCountlist)):
+                data.append(str(Norm_ReadCountlist[j][i]))
+            writer.writerow(data)
+    elif len(datafiles)==1:
+        for i in range(len(Gene_id)):
+            data=[Gene_id[i], Description[i]]
+            for j in Norm_ReadCountlist[i]:
+                data.append(str(j))
+            writer.writerow(data)
 
 if header[int(len(header)/2)].startswith('/'):
     insert(out2,'\t'.join(i.lstrip('/') for i in header))
