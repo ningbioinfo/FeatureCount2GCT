@@ -44,7 +44,10 @@ def Get_readcount(fc_file):
         next(file)
         for line in file:
                 data = line.rstrip('\n').split('\t')
-                ReadCount.append(int(data[6]))
+                if len(data) <= 7:
+                    ReadCount.append(int(data[6]))
+                else:
+                    ReadCount.append(data[1:])
     return ReadCount
 
 ## get normalized read count
@@ -56,9 +59,14 @@ def Get_Normreadcount(rc_list):
         global Norm_ReadCountlist
         for i in range(len(rc_list)):
             s = sum(rc_list[i])
-            for j in rc_list[i]:
-                norm_rc = np.round((j/float(s))*1000000, decimals=3)
-                Norm_ReadCount.append(norm_rc)
+            if s != 0:
+                for j in rc_list[i]:
+                    norm_rc = np.round((j/float(s))*1000000, decimals=3)
+                    Norm_ReadCount.append(norm_rc)
+            elif s == 0:
+                for j in rc_list[i]:
+                    norm_rc = 0.0
+                    Norm_ReadCount.append(norm_rc)
             Norm_ReadCountlist.append(Norm_ReadCount)
             Norm_ReadCount=[]
         return Norm_ReadCount
@@ -93,6 +101,7 @@ args = vars(parser.parse_args())
 
 Get_file(args['datadir'])
 
+
 # get geneid and description
 
 with open(datafiles[0],"r") as file:
@@ -101,10 +110,13 @@ with open(datafiles[0],"r") as file:
     next(file)
     next(file)
     for line in file:
-         data = line.rstrip('\n').split('\t')
-         Gene_id.append(data[0])
-         position = data[1] + ":" + data[2] + "-" + data[3]
-         Description.append(position)
+        data = line.rstrip('\n').split('\t')
+        Gene_id.append(data[0])
+        if len(data) <= 7:
+            position = data[1] + ":" + data[2] + "-" + data[3]
+            Description.append(position)
+        else:
+            Description.append('gene')
 
 
 ##
@@ -115,12 +127,18 @@ for file in datafiles:
     print("Extracting read counts from",file)
     Get_readcount(file)
     #print(len(ReadCount))
-    ReadCountlist.append(ReadCount)
+    if len(datafiles)>1:
+        ReadCountlist.append(ReadCount)
+    elif len(datafiles)==1:
+        for i in ReadCount:
+            ReadCountlist.append([int(j) for j in i])
     ReadCount=[] # reset the readcount
 
 print(len(ReadCountlist[0]))
 print(len(Gene_id))
 print(len(Description))
+print('The three numbers that just printed out should be the same.')
+
 
 out1 = args['out'] + '.gct'
 out2 = args['out'] + '.normalised.gct'
@@ -131,15 +149,28 @@ with open(out1, 'a', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     for i in range(len(Gene_id)):
         data=[Gene_id[i], Description[i]]
-        for j in range(len(ReadCountlist)):
-            data.append(str(ReadCountlist[j][i]))
+        for j in ReadCountlist:
+            data.append(str(j[i]))
         writer.writerow(data)
 
 # headers
 header = ["Name","Description"]
-for i in datafiles:
-    header.append(i.lstrip(sys.argv[1]).rstrip(".counts.txt"))
-header.append('\n')
+if len(datafiles) > 1:
+    for i in datafiles:
+        header.append(i.lstrip(args['datadir']).rstrip(".counts.txt").lstrip('/'))
+    header.append('\n')
+elif len(datafiles) == 1:
+    with open(datafiles[0]) as file:
+        next(file)
+        for line in file:
+            name = line.strip().split('\t')[1:]
+            for i in name:
+                header.append(i)
+            break
+    header.append('\n')
+
+
+
 print("The headers are:", header)
 
 if header[int(len(header)/2)].startswith('/'):
@@ -161,8 +192,8 @@ with open(out2, 'a', newline='') as norm_csvfile:
     writer = csv.writer(norm_csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     for i in range(len(Gene_id)):
         data=[Gene_id[i], Description[i]]
-        for j in range(len(Norm_ReadCountlist)):
-            data.append(str(Norm_ReadCountlist[j][i]))
+        for j in Norm_ReadCountlist:
+            data.append(str(j[i]))
         writer.writerow(data)
 
 if header[int(len(header)/2)].startswith('/'):
