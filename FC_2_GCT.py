@@ -1,13 +1,18 @@
+#!/usr/bin/env python
 ## A python script to extract information from FeatureCount output file
-## and restructre into a .GCT expression table which is required by the 
+## and restructre into a .GCT expression table which is required by the
 ## GTEX eqtl pipeline
+
+## Author: Ning Liu
 
 ## Libraries
 import sys
+import argparse
 from os import listdir
 from os.path import isfile, join
 import os
 import numpy as np
+import csv
 
 
 ## Read Files
@@ -27,8 +32,8 @@ def Get_file(datadir):
             if isfile(join(datadir,f)):
                 datafiles.append(datadir +"/"+ f)
     return datafiles
-        
-            
+
+
 
 ## Get infomation function
 ## get read count
@@ -64,16 +69,29 @@ def Get_Normreadcount(rc_list):
 
 def insert(originalfile,string):
     with open(originalfile,'r') as f:
-        with open('newfile.txt','w') as f2: 
+        with open('newfile.txt','w') as f2:
             f2.write(string)
             f2.write(f.read())
     os.rename('newfile.txt',originalfile)
 
+## Argument
+
+parser = argparse.ArgumentParser(description='Script to transform the output from featurecount to .gct format for eQTL mapping',
+                                 epilog='Your ideas are intriguing to me, and I wish to subscribe to your newsletter.')
+parser.add_argument('-datadir', nargs='?', help='path to the directory that contains the all the output files from featurecount (.counts.txt)')
+parser.add_argument('-out', default='out', help='The output file prefix, by default it is "out", i.e. output will be out.gct and out.normalised.gct')
+
+
+
+## read arguments
+args = vars(parser.parse_args())
+
+
+
 ## Execution
 
 
-    
-Get_file(sys.argv[1])
+Get_file(args['datadir'])
 
 # get geneid and description
 
@@ -94,37 +112,62 @@ with open(datafiles[0],"r") as file:
 
 # raw_readcount
 for file in datafiles:
+    print("Extracting read counts from",file)
     Get_readcount(file)
     #print(len(ReadCount))
     ReadCountlist.append(ReadCount)
     ReadCount=[] # reset the readcount
-    
-#print(len(ReadCountlist))
+
+print(len(ReadCountlist[0]))
+print(len(Gene_id))
+print(len(Description))
+
+out1 = args['out'] + '.gct'
+out2 = args['out'] + '.normalised.gct'
 
 ### Output file
-for i in range(len(Gene_id)):
-        print(Gene_id[i],'\t',Description[i],'\t','\t'.join(str(ReadCountlist[j][i]) for j in range(len(ReadCountlist))), file = open("output.txt","a"))
+print("Writing into gct file.")
+with open(out1, 'a', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    for i in range(len(Gene_id)):
+        data=[Gene_id[i], Description[i]]
+        for j in range(len(ReadCountlist)):
+            data.append(str(ReadCountlist[j][i]))
+        writer.writerow(data)
 
 # headers
 header = ["Name","Description"]
 for i in datafiles:
     header.append(i.lstrip(sys.argv[1]).rstrip(".counts.txt"))
 header.append('\n')
-print(header)
+print("The headers are:", header)
 
-insert("output.txt",'\t'.join(i for i in header))
-insert("output.txt",'\t'.join([str(len(Gene_id)),str(len(ReadCountlist)),'\n']))
-insert("output.txt",'\t'.join(['#1.2','\n']))
+if header[int(len(header)/2)].startswith('/'):
+    insert(out1,'\t'.join(i.lstrip('/') for i in header))
+else:
+    insert(out1,'\t'.join(i for i in header))
+insert(out1,'\t'.join([str(len(Gene_id)),str(len(ReadCountlist)),'\n']))
+insert(out1,'\t'.join(['#1.2','\n']))
 
 # normalised_read count
+print("Extracting normalised read counts.")
 Get_Normreadcount(ReadCountlist)
-    
+
 #print(len(Norm_ReadCountlist))
 
 ### Norm_Output file
-for i in range(len(Gene_id)):
-        print(Gene_id[i],'\t',Description[i],'\t','\t'.join(str(Norm_ReadCountlist[j][i]) for j in range(len(Norm_ReadCountlist))), file = open("Normalised_output.txt","a"))
+print("Writing into normalised gct file.")
+with open(out2, 'a', newline='') as norm_csvfile:
+    writer = csv.writer(norm_csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    for i in range(len(Gene_id)):
+        data=[Gene_id[i], Description[i]]
+        for j in range(len(Norm_ReadCountlist)):
+            data.append(str(Norm_ReadCountlist[j][i]))
+        writer.writerow(data)
 
-insert("Normalised_output.txt",'\t'.join(i for i in header))
-insert("Normalised_output.txt",'\t'.join([str(len(Gene_id)),str(len(ReadCountlist)),'\n']))
-insert("Normalised_output.txt",'\t'.join(['#1.2','\n']))
+if header[int(len(header)/2)].startswith('/'):
+    insert(out2,'\t'.join(i.lstrip('/') for i in header))
+else:
+    insert(out2,'\t'.join(i for i in header))
+insert(out2,'\t'.join([str(len(Gene_id)),str(len(ReadCountlist)),'\n']))
+insert(out2,'\t'.join(['#1.2','\n']))
