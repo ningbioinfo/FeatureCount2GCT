@@ -149,8 +149,12 @@ with open(out1, 'a', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     for i in range(len(Gene_id)):
         data=[Gene_id[i], Description[i]]
-        for j in ReadCountlist[i]:
-            data.append(j)
+        if len(datafiles)>1:
+            for j in ReadCountlist:
+                data.append(str(j[i]))
+        elif len(datafiles)==1:
+            for j in ReadCountlist[i]:
+                data.append(str(j))
         writer.writerow(data)
 
 # headers
