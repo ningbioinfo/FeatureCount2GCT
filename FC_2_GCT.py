@@ -85,11 +85,11 @@ def insert(originalfile,string):
 
 ## Argument
 
-parser = argparse.ArgumentParser(description='Script to transform the output from featurecount to .gct format for eQTL mapping',
+parser = argparse.ArgumentParser(description='Script to transform a featureCounts output (cut -f1,7- removed) to .gct format for eQTL mapping',
                                  epilog='Your ideas are intriguing to me, and I wish to subscribe to your newsletter.')
-parser.add_argument('-datadir', nargs='?', help='path to the directory that contains the all the output files from featurecount (.counts.txt)')
-parser.add_argument('-out', default='out', help='The output file prefix, by default it is "out", i.e. output will be out.gct and out.normalised.gct')
-parser.add_argument('-mergedata', default='1', help='The input dir has one count output from featureCount contains all the samples instead of having one txt file for each sample, specify this option to 0 to turn it off')
+parser.add_argument('--datadir', nargs='?', help='Path to the directory that contains the all the output files from featurecount (.counts.txt)')
+parser.add_argument('--out', default='out', help='Output file prefix, by default it is "out", i.e. output will be out.gct and out.normalised.gct')
+parser.add_argument('--mergedata', default='1', help='The input dir has one count input from featureCounts containing all the samples. Set to 0 to turn it off')
 
 
 ## read arguments
