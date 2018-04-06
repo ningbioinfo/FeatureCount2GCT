@@ -64,10 +64,19 @@ def Get_Normreadcount(ReadCountlist):
     for sample in ReadCountlist.transpose():
         gene_sum.append(sum(sample))
 
+    ave_libsize = sum(gene_sum)/len(gene_sum)
+    priorcount = float(args['prior'])
+
     for gene in ReadCountlist:
         for col in range(len(gene)):
-            norm_rc = round(math.log2(((gene[col]+0.5)/(gene_sum[col]+1.0)*1000000)),3)
-            Norm_ReadCount.append(norm_rc)
+            if args['norm'] == 'limmavoom':
+                norm_rc = round(math.log2((((gene[col]+0.5)/(gene_sum[col]+1.0))*1000000)),4)
+                Norm_ReadCount.append(norm_rc)
+            elif args['norm'] == 'edger':
+                prcountscale = float(gene_sum[col])/ave_libsize*priorcount
+                libscale = (gene_sum[col]+2*prcountscale)/1000000
+                norm_rc = round(math.log2((gene[col]+prcountscale)/libscale),4)
+                Norm_ReadCount.append(norm_rc)
         Norm_ReadCountlist.append(Norm_ReadCount)
         Norm_ReadCount = []
     Norm_ReadCountlist = np.array(Norm_ReadCountlist)
@@ -90,7 +99,8 @@ parser = argparse.ArgumentParser(description='Script to transform the output fro
 parser.add_argument('-datadir', nargs='?', help='path to the directory that contains the all the output files from featurecount (.counts.txt)')
 parser.add_argument('-out', default='out', help='The output file prefix, by default it is "out", i.e. output will be out.gct and out.normalised.gct')
 parser.add_argument('-mergedata', default='1', help='The input dir has one count output from featureCount contains all the samples instead of having one txt file for each sample, specify this option to 0 to turn it off')
-
+parser.add_argument('-norm', default='limmavoom', help='By default this script will use the e-value calculation from limma-voom, if you want to use CPM calculation from edgeR, specify "edger".')
+parser.add_argument('-prior', default='0.5', help='If you spcify to use the edger normalisation, please specify this option, by default the prior.count set to 0.5, but a large prior.count may be valuable to damp down the variability of small count cpm values.')
 
 ## read arguments
 args = vars(parser.parse_args())

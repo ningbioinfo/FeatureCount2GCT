@@ -16,6 +16,7 @@ This is a script to convert the output from FeatureCount to GCT format expressio
 ```
  $ python FC_2_GCT.py -h
 usage: FC_2_GCT.py [-h] [-datadir [DATADIR]] [-out OUT] [-mergedata MERGEDATA]
+                   [-norm NORM] [-prior PRIOR]
 
 Script to transform the output from featurecount to .gct format for eQTL
 mapping
@@ -30,6 +31,13 @@ optional arguments:
                         contains all the samples instead of having one txt
                         file for each sample, specify this option to 0 to turn
                         it off
+  -norm NORM            By default this script will use the e-value
+                        calculation from limma-voom, if you want to use CPM
+                        calculation from edgeR, specify "edger".
+  -prior PRIOR          If you spcify to use the edger normalisation, please
+                        specify this option, by default the prior.count set to
+                        0.5, but a large prior.count may be valuable to damp
+                        down the variability of small count cpm values.
 
 Your ideas are intriguing to me, and I wish to subscribe to your newsletter.
 ```
