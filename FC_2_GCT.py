@@ -16,6 +16,7 @@ import os
 import numpy as np
 import math
 import csv
+import re
 
 ## Read Files
 datafiles=[]
@@ -24,6 +25,7 @@ ReadCountlist = []
 Norm_ReadCount = []
 Norm_ReadCountlist =[]
 gene_sum = []
+gene_dict = {}
 
 ## Get input function
 def Get_file(datadir):
@@ -56,7 +58,7 @@ def Get_readcount(fc_file):
 ## TPM normalization
 ## readcount/sum*1M
 
-def Get_Normreadcount(ReadCountlist):
+def Get_Normreadcount(ReadCountlist, gene_dict, gene_id):
     global Norm_ReadCount
     global Norm_ReadCountlist
     global gene_sum
@@ -66,17 +68,31 @@ def Get_Normreadcount(ReadCountlist):
 
     ave_libsize = sum(gene_sum)/len(gene_sum)
     priorcount = float(args['prior'])
-
+    n = 0
     for gene in ReadCountlist:
+        whichgene = gene_id[n]
+        n = n + 1
         for col in range(len(gene)):
-            if args['norm'] == 'limmavoom':
-                norm_rc = round(math.log2((((gene[col]+0.5)/(gene_sum[col]+1.0))*1000000)),4)
-                Norm_ReadCount.append(norm_rc)
-            elif args['norm'] == 'edger':
+            if args['norm'] == 'tpm':
+                RPK = gene[col]/(gene_dict[whichgene]/1000) # account for gene length
                 prcountscale = float(gene_sum[col])/ave_libsize*priorcount
                 libscale = (gene_sum[col]+2*prcountscale)/1000000
-                norm_rc = round(math.log2((gene[col]+prcountscale)/libscale),4)
+                norm_rc = round(math.log2((RPK+prcountscale)/libscale),4) # account for sequencing depths
                 Norm_ReadCount.append(norm_rc)
+
+            elif args['norm'] == 'rpkm':
+                prcountscale = float(gene_sum[col])/ave_libsize*priorcount
+                libscale = (gene_sum[col]+2*prcountscale)/1000000
+                RPM = (gene[col]+prcountscale)/libscale # account for sequencing depths
+                norm_rc = round(math.log2(RPM/(gene_dict[whichgene]/1000)),4) # account for gene length
+                Norm_ReadCount.append(norm_rc)
+
+            elif args['norm'] == 'cpm':
+                prcountscale = float(gene_sum[col])/ave_libsize*priorcount
+                libscale = (gene_sum[col]+2*prcountscale)/1000000
+                norm_rc = round(math.log2((gene[col]+prcountscale)/libscale),4) # account for sequencing depths
+                Norm_ReadCount.append(norm_rc)
+
         Norm_ReadCountlist.append(Norm_ReadCount)
         Norm_ReadCount = []
     Norm_ReadCountlist = np.array(Norm_ReadCountlist)
@@ -92,6 +108,28 @@ def insert(originalfile,string):
             f2.write(f.read())
     os.rename('newfile.txt',originalfile)
 
+## get the gene length for normalisation
+def get_gene_length(gtf):
+    global gene_dict
+    with open(gtf, 'r') as gtf:
+
+        next(gtf);next(gtf);next(gtf);next(gtf);next(gtf)
+        for line in gtf:
+            data = line.strip().split('"')
+            gene_id = list(filter(re.compile('^ENSG').search, data))[0]
+            gene_length = str(int(data[0].strip().split('\t')[4])-int(data[0].strip().split('\t')[3]))
+            if gene_id not in gene_dict:
+                gene_dict[gene_id] = gene_length
+            else:
+                gene_dict[gene_id] = (list(gene_dict[gene_id])+list(gene_length))
+
+        for key,value in gene_dict.items():
+            if type(value) is list:
+                value = [int(x) for x in value]
+                value = round(sum(value)/len(value),4)
+                gene_dict[key] = value
+    return gene_dict
+
 ## Argument
 
 parser = argparse.ArgumentParser(description='Script to transform the output from featurecount to .gct format for eQTL mapping',
@@ -99,8 +137,9 @@ parser = argparse.ArgumentParser(description='Script to transform the output fro
 parser.add_argument('-datadir', nargs='?', help='path to the directory that contains the all the output files from featurecount (.counts.txt)')
 parser.add_argument('-out', default='out', help='The output file prefix, by default it is "out", i.e. output will be out.gct and out.normalised.gct')
 parser.add_argument('-mergedata', default='1', help='The input dir has one count output from featureCount contains all the samples instead of having one txt file for each sample, specify this option to 0 to turn it off')
-parser.add_argument('-norm', default='limmavoom', help='By default this script will use the e-value calculation from limma-voom, if you want to use CPM calculation from edgeR, specify "edger".')
-parser.add_argument('-prior', default='0.5', help='If you spcify to use the edger normalisation, please specify this option, by default the prior.count set to 0.5, but a large prior.count may be valuable to damp down the variability of small count cpm values.')
+parser.add_argument('-norm', default='tpm', help='By default this script uses the tpm normalisation from edgeR, another choice could be rpkm by speicify "rpkm" or cpm by specify "cpm" in this option.')
+parser.add_argument('-prior', default='1', help='By default the prior.count set to 1, as it is suggest by the GTEx documentation, but a large prior.count may be valuable to damp down the variability of small count cpm values.')
+parser.add_argument('-annotation', nargs='?', help='the anotation file used in your featureCount, we are assuming the gene_id start with a "ENSG", aka ensembl annotation.')
 
 ## read arguments
 args = vars(parser.parse_args())
@@ -192,8 +231,20 @@ insert(out1,'\t'.join([str(gene_num),str(sample_num),'\n']))
 insert(out1,'\t'.join(['#1.2','\n']))
 
 # normalised_read count
+
+
+
+if args['norm'] != 'cpm':
+    print("Calculating gene length from the gtf file.")
+    get_gene_length(args['annotation'])
+    print('Finishing calculation of gene lengths.')
+
+
 print("Extracting normalised read counts.")
-Get_Normreadcount(ReadCountlist)
+
+print("You have choose %s to be your normalisation method." %(args['norm']))
+
+Get_Normreadcount(ReadCountlist, gene_dict, Gene_id)
 
 #print(len(Norm_ReadCountlist))
 
