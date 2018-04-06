@@ -15,8 +15,9 @@ This is a script to convert the output from FeatureCount to GCT format expressio
 
 ```
  $ python FC_2_GCT.py -h
+
 usage: FC_2_GCT.py [-h] [-datadir [DATADIR]] [-out OUT] [-mergedata MERGEDATA]
-                   [-norm NORM] [-prior PRIOR]
+                   [-norm NORM] [-prior PRIOR] [-annotation [ANNOTATION]]
 
 Script to transform the output from featurecount to .gct format for eQTL
 mapping
@@ -31,13 +32,17 @@ optional arguments:
                         contains all the samples instead of having one txt
                         file for each sample, specify this option to 0 to turn
                         it off
-  -norm NORM            By default this script will use the e-value
-                        calculation from limma-voom, if you want to use CPM
-                        calculation from edgeR, specify "edger".
-  -prior PRIOR          If you spcify to use the edger normalisation, please
-                        specify this option, by default the prior.count set to
-                        0.5, but a large prior.count may be valuable to damp
-                        down the variability of small count cpm values.
+  -norm NORM            By default this script uses the tpm normalisation from
+                        edgeR, another choice could be rpkm by speicify "rpkm"
+                        or cpm by specify "cpm" in this option.
+  -prior PRIOR          By default the prior.count set to 1, as it is suggest
+                        by the GTEx documentation, but a large prior.count may
+                        be valuable to damp down the variability of small
+                        count cpm values.
+  -annotation [ANNOTATION]
+                        the anotation file used in your featureCount, we are
+                        assuming the gene_id start with a "ENSG", aka ensembl
+                        annotation.
 
 Your ideas are intriguing to me, and I wish to subscribe to your newsletter.
 ```
@@ -62,7 +67,7 @@ total 4164520
 ....
 ```
 ```
-python FC_2_GCT.py -datadir featureCount/ -mergedata 0
+python FC_2_GCT.py -datadir featureCount -mergedata 0 -norm tpm -annotation gencode.v27lift37.annotation.gtf -out Mont 
 ```
 
 or
@@ -74,7 +79,7 @@ total 29736
 -rw-r--r--@ 1 ningliu  staff    15M  5 Apr 20:42 merge_all.counts.txt
 ```
 ```
-python FC_2_GCT.py -datadir Mergedata/ -mergedata 1 
+$ python FC_2_GCT.py -datadir Mergedata -annotation gencode.v27lift37.annotation.gtf -norm cpm -out merge
 ```
 **the /data/ folder is expected to have featureCounts outputs end with ".counts.txt"**
 
