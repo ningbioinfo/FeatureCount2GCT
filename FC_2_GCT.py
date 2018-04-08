@@ -145,19 +145,29 @@ parser.add_argument('--annotation', nargs='?', help='the anotation file used in 
 ## read arguments
 args = vars(parser.parse_args())
 
-
+if len(sys.argv)==1:
+    parser.print_help(sys.stderr)
+    sys.exit()
+if args['datadir'] is None:
+    print('\x1b[0;37;41m'+'ERROR: Please run the script with specifying the --datadir arugments.'+'\x1b[0m')
+    parser.print_help(sys.stderr)
+    sys.exit()
+if args['annotation'] is None:
+    print('\x1b[0;37;41m'+'ERROR: Please run the script with specifying the --annotation arguments.'+'\x1b[0m')
+    parser.print_help(sys.stderr)
+    sys.exit()
 ## Execution
 print('START!')
 
-if args['datadir'] is None:
-    print('ERROR: Please run the script with specifying the --datadir arugments.')
-    sys.exit()
-if args['annotation'] is None:
-    print('ERROR: Please run the script with specifying the --annotation arguments.')
-    sys.exit()
+
 
 Get_file(args['datadir'])
 
+# check the mode
+if len(datafiles)>1 and args['mergedata'] == '1':
+    print('\x1b[0;37;41m'+'ERROR: Please turn off the mergedata mode when inputing multiple count.txt.'+'\x1b[0m')
+    parser.print_help(sys.stderr)
+    sys.exit()
 #print(datafiles)
 
 # get geneid and description
