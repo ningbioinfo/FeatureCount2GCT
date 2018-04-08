@@ -9,6 +9,7 @@
 ## version 1.2.0
 
 ## Libraries
+import sys
 import argparse
 from os import listdir
 from os.path import isfile, join
@@ -134,12 +135,12 @@ def get_gene_length(gtf):
 
 parser = argparse.ArgumentParser(description='Script to transform the output from featurecount to .gct format for eQTL mapping',
                                  epilog='Your ideas are intriguing to me, and I wish to subscribe to your newsletter.')
-parser.add_argument('-datadir', nargs='?', help='path to the directory that contains the all the output files from featurecount (.counts.txt)')
-parser.add_argument('-out', default='out', help='The output file prefix, by default it is "out", i.e. output will be out.gct and out.normalised.gct')
-parser.add_argument('-mergedata', default='1', help='The input dir has one count output from featureCount contains all the samples instead of having one txt file for each sample, specify this option to 0 to turn it off')
-parser.add_argument('-norm', default='tpm', help='By default this script uses the tpm normalisation from edgeR, another choice could be rpkm by speicify "rpkm" or cpm by specify "cpm" in this option.')
-parser.add_argument('-prior', default='1', help='By default the prior.count set to 1, as it is suggest by the GTEx documentation, but a large prior.count may be valuable to damp down the variability of small count cpm values.')
-parser.add_argument('-annotation', nargs='?', help='the anotation file used in your featureCount, we are assuming the gene_id start with a "ENSG", aka ensembl annotation.')
+parser.add_argument('--datadir', nargs='?', help='Path to the directory that contains the all the output files from featurecount (.counts.txt)')
+parser.add_argument('--out', default='out', help='Output file prefix, by default it is "out", i.e. output will be out.gct and out.normalised.gct')
+parser.add_argument('--mergedata', default='1', help='The input dir has one count input from featureCounts containing all the samples. Set to 0 to turn it off')
+parser.add_argument('--norm', default='tpm', help='By default this script uses the tpm normalisation from edgeR, another choice could be rpkm by speicify "rpkm" or cpm by specify "cpm" in this option.')
+parser.add_argument('--prior', default='1', help='By default the prior.count set to 1, as it is suggest by the GTEx documentation, but a large prior.count may be valuable to damp down the variability of small count cpm values.')
+parser.add_argument('--annotation', nargs='?', help='the anotation file used in your featureCount, we are assuming the gene_id start with a "ENSG", aka ensembl annotation.')
 
 ## read arguments
 args = vars(parser.parse_args())
@@ -147,6 +148,14 @@ args = vars(parser.parse_args())
 
 ## Execution
 print('START!')
+
+if args['datadir'] is None:
+    print('ERROR: Please run the script with specifying the --datadir arugments.')
+    sys.exit()
+if args['annotation'] is None:
+    print('ERROR: Please run the script with specifying the --annotation arguments.')
+    sys.exit()
+
 Get_file(args['datadir'])
 
 #print(datafiles)
