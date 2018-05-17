@@ -261,7 +261,7 @@ if args['norm'] != 'cpm':
 
 print("Extracting normalised read counts.")
 
-print("You have choose %s to be your normalisation method." %(args['norm']))
+print("You choosed %s to be your normalisation method." %(args['norm']))
 
 Get_Normreadcount(ReadCountlist, gene_dict, Gene_id)
 
